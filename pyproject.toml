@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "ask-genie"
+version = "0.1.0"
+description = "Ask Genie skill for Mycroft"
+authors = ["vadim <vadim@axxessio.com>"]
+packages = [
+    { include = "genie" }
+]
+
+[tool.poetry.dependencies]
+python = ">=3.8"
+pydantic = {extras = ["dotenv"], version = "^1.9.0"}
+websocket-client = "^1.3.1"
+
+[tool.poetry.dev-dependencies]
+black = "^22.1.0"
+mypy = "^0.931"
+pytest = "^6.2.5"
+pytest-cov = "^3.0.0"
+pytest-asyncio = "^0.17.2"
+respx = "^0.19.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[tool.black]
+line-length = 120
+target-version = ["py38"]
