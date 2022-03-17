@@ -74,11 +74,10 @@ class ApiClient:
             raise ApiException("Not connected")
 
         self._flush_receive_queue()
-        command = {"type": "command", "command": text}
+        command = {"type": "command", "text": text}
         self.ws.send(json.dumps(command))
-        res = self._receive_queue.get()
 
-        return res
+        return self._retrieve_text_answer()
 
     def _on_message(self, ws: websocket.WebSocketApp, message: str):
         self._receive_queue.put(message)
@@ -86,3 +85,12 @@ class ApiClient:
     def _flush_receive_queue(self):
         while not self._receive_queue.empty():
             self._receive_queue.get()
+
+    def _retrieve_text_answer(self):
+        while data := self._receive_queue.get():
+            try:
+                res = json.loads(data)
+                if res["type"] == "text":
+                    return res["text"]
+            except json.JSONDecodeError:
+                pass
