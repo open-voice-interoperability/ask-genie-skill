@@ -1,1 +1,1 @@
-(ask genie) (?P<utterance>.+)
+(ask genie|ask jeannie) (?P<utterance>.+)

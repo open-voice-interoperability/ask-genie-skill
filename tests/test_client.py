@@ -1,6 +1,4 @@
-import json
 import time
-import pytest
 from genie.client import ApiClient
 
 

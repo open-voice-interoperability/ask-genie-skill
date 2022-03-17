@@ -79,6 +79,12 @@ class ApiClient:
 
         return self._retrieve_text_answer()
 
+    def __enter__(self) -> "ApiClient":
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        self.disconnect()
+
     def _on_message(self, ws: websocket.WebSocketApp, message: str):
         self._receive_queue.put(message)
 

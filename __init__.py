@@ -7,9 +7,9 @@ from .genie.client import ApiClient
 
 LANG = "de"
 NO_INTENT = "no.intent"
-ASK = "ask.genie"
-LAUNCH = "launch.genie"
-STOP = "stop.genie"
+ASK = "ask"
+LAUNCH = "launch"
+STOP = "stop"
 
 
 class AskGenie(MycroftSkill):
