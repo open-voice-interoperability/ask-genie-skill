@@ -12,10 +12,10 @@ class Settings(BaseSettings):
     token_url: str = "/me/api/oauth2/token"
     client_id: str = "client-id"
     client_secret: str = "client-secret"
-    scope: str = "scope"
     redirect_uri: str = "https://based.at/oauth2.html"
 
     conversation_url: str = "/me/api/conversation"
+    authorization_code: str = "authorization-code"
     access_token: str = "access-token"
 
     class Config:

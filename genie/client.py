@@ -4,6 +4,7 @@ import json
 from urllib import parse
 from typing import Any
 from threading import Thread
+import httpx
 import websocket
 import webbrowser
 
@@ -11,10 +12,13 @@ from .config import settings
 
 
 CODE = "code"
-AUTHORISATION_CODE = "authorization_code"
+AUTHORIZATION_CODE = "authorization_code"
 CLIENT_CREDENTIALS = "client_credentials"
 REFRESH_TOKEN = "refresh_token"
 SCOPE = "user-exec-command"
+
+CONNECT_TIMEOUT = 10
+SLEEP_TIME = 0.1
 
 
 class ApiException(Exception):
@@ -26,7 +30,7 @@ class ApiClient:
     API client
     """
 
-    ws: websocket.WebSocketApp
+    ws: websocket.WebSocketApp = None
 
     _receive_queue: queue.Queue[Any]
 
@@ -37,17 +41,29 @@ class ApiClient:
 
     @staticmethod
     def authorise():
-        """
-        :return:
-        """
         params = dict(
             response_type=CODE,
             client_id=settings.client_id,
             redirect_uri=settings.redirect_uri,
-            scope=settings.scope,
+            scope=SCOPE,
         )
 
         webbrowser.open(f"{settings.base_url}{settings.auth_url}?{parse.urlencode(params)}")
+
+    @staticmethod
+    def get_token():
+        url = f"{settings.base_url}{settings.token_url}"
+        params = dict(
+            grant_type=AUTHORIZATION_CODE,
+            client_id=settings.client_id,
+            client_secret=settings.client_secret,
+            redirect_uri=settings.redirect_uri,
+            code=settings.authorization_code,
+        )
+
+        with httpx.Client() as client:
+            r = client.post(url, data=params)
+            return r.json()
 
     def connect(self) -> "ApiClient":
         self.ws = websocket.WebSocketApp(
@@ -56,9 +72,12 @@ class ApiClient:
             on_message=self._on_message,
         )
 
+        will_wait = CONNECT_TIMEOUT
         Thread(target=self.ws.run_forever, daemon=True).start()
         while not (self.ws.sock and self.ws.sock.connected):
-            time.sleep(0.1)
+            if (will_wait := will_wait - SLEEP_TIME) <= 0:
+                raise ApiException("Time-out connecting to Genie cloud. Token expired?")
+            time.sleep(SLEEP_TIME)
 
         return self
 
@@ -67,7 +86,7 @@ class ApiClient:
         return self
 
     def is_connected(self) -> bool:
-        return self.ws and self.ws.sock.connected
+        return self.ws and self.ws.sock and self.ws.sock.connected
 
     def send_text_command(self, text: str) -> str:
         if not self.is_connected():
